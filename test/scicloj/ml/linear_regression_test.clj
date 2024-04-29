@@ -4,7 +4,8 @@
    [scicloj.ml.tribuo]
    [scicloj.metamorph.ml :as ml]
    [scicloj.metamorph.ml.toydata :as toydata]
-   [tech.v3.dataset :as ds]))
+   [tech.v3.dataset :as ds]
+   [tech.v3.libs.tribuo :as tribuo]))
 
 (def diabetes
 
@@ -26,6 +27,11 @@
                    :tribuo-trainer-name "trainer"})]
 
 
+    ;(def tribuo-linear-sdg tribuo-linear-sdg)
+
+    (t/is (= [2 11]
+             (ds/shape
+              (ml/tidy tribuo-linear-sdg))))
     (t/is (=
            (ds/rows
             (ml/glance tribuo-linear-sdg))
@@ -48,3 +54,7 @@
             (ml/augment diabetes)
             (ds/head 10)
             (ds/rows))))))
+
+
+
+

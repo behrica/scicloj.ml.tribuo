@@ -75,9 +75,7 @@
 
 (defn glance-fn-regression [model]
 
-  (let [
-
-        target-ds (-> model :model-data :target-ds)
+  (let [target-ds (-> model :model-data :target-ds)
         target-column-names (ds-mod/inference-target-column-names target-ds)
         _ (assert (< (count  target-column-names) 2) "Can only handle single inference target")
 
@@ -118,6 +116,24 @@
         (ds/add-column (ds/new-column :.fitted prediction-values))
         (ds/add-column (ds/new-column :.resid residuos)))))
 
+(defn tidy-fn-regression [model]
+  (let [
+        feature-ds (-> model :model-data :feature-ds)
+        target-ds (-> model :model-data :target-ds)
+        target-column-names (ds-mod/inference-target-column-names target-ds)
+        _ (assert (< (count  target-column-names) 2) "Can only handle single inference target")
+
+       ;; TODO: Order of weights ????
+        terms (concat target-column-names (ds/column-names feature-ds))
+        weights 
+        (-> model :model-data :model 
+            
+            .getModelParameters 
+            .getWeightMatrix ;; TODO model specific
+            (.getRow 0) .toArray)]
+
+    (ds/->dataset {:term terms
+                   :estimate weights})))
 
 (ml/define-model! :scicloj.ml.tribuo/regression
   (fn [feature-ds target-ds options]
@@ -132,4 +148,5 @@
        (tribuo/predict-regression model feature-ds)
        (post-process-prediction (first target-columns)))))
   {:glance-fn glance-fn-regression
-   :augment-fn augment-fn-regression})
+   :augment-fn augment-fn-regression
+   :tidy-fn tidy-fn-regression})
